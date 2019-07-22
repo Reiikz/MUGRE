@@ -1,7 +1,9 @@
 #include "NetworkCommunication.h"
 
-char* WIFI_SSID = ":'v':";
-char* WIFI_PASSWD = "thedragonsarekawaii";
+//char* WIFI_SSID = ":'v':";
+char* WIFI_SSID = "Ceibal-2.4GHz";
+char* WIFI_PASSWD = "";
+//char* WIFI_PASSWD = "thedragonsarekawaii";
 
 word LISTEN_PORT  = 5500;
 word SEND_PORT    = 5505;

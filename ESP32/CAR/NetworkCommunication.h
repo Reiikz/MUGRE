@@ -19,6 +19,28 @@ class NetworkCommunication{
   
   public:
 
+    NetworkCommunication(){
+      Serial.println("Not initialized, please enter config");
+      Serial.println("Enter SSID");
+      W_SSID = "any";
+      P_WIFI = "any";
+      while(W_SSID == "any" || P_WIFI == "any"){
+        if(Serial.available()){
+          if(W_SSID == "any"){
+            W_SSID = Serial.readString();
+          }else{
+            P_WIFI = Serial.readString();
+          }
+        }
+      }
+
+      Logvalue = "[SSID]: " + W_SSID;
+      LogInfo();
+      LogValue = "[PASSWORD]: " + P_WIFI;
+      LogInfo();
+      char* 
+    }
+    
     NetworkCommunication(char* W_SSID, char* W_PASSWD, word* LISTENPORT, word* SENDPORT, word* SYNCPORT){
       LastMessage = "";
       LastMessageTime = 0;
@@ -26,6 +48,7 @@ class NetworkCommunication{
       SYNC_PORT=SYNCPORT;
       ConnectionAttemptCount = 0;
       RemoteIp = "any";
+      
       WiFi.setHostname("MUGRES-BODY");
       WiFi.begin(W_SSID, W_PASSWD);
       while(WiFi.status() != WL_CONNECTED && ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
@@ -62,6 +85,8 @@ class NetworkCommunication{
     bool GetWiFiStatus();
 
   private:
+    String W_SSID;
+    String P_WIFI;
     String LocalIp;
     String RemoteIp;
     String LogValue;
