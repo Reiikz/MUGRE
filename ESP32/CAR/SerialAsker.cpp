@@ -21,7 +21,7 @@ void SerialAsker::AskForCString(const char* message, char buff[], int size_, boo
   Serial.println(message);
   while(! Serial.available());
   char c;
-  for(int i = 0; Serial.available() ; i++){
+  for(int i = 0; Serial.available() && i < size_; i++){
     c = Serial.read();
     if(!lineJump && c == '\n'){
       continue;
