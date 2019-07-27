@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "Logger.h"
+#include "SerialAsker.h"
 
 #pragma once
 
@@ -18,30 +19,17 @@ class NetworkCommunication{
     static const word CONNECTION_ATTEMPT_ESTIMATED_INTERVAL = 700;
   
   public:
-
-    NetworkCommunication(){
-      Serial.println("Not initialized, please enter config");
-      Serial.println("Enter SSID");
-      W_SSID = "any";
-      P_WIFI = "any";
-      while(W_SSID == "any" || P_WIFI == "any"){
-        if(Serial.available()){
-          if(W_SSID == "any"){
-            W_SSID = Serial.readString();
-          }else{
-            P_WIFI = Serial.readString();
-          }
-        }
-      }
-
-      Logvalue = "[SSID]: " + W_SSID;
-      LogInfo();
-      LogValue = "[PASSWORD]: " + P_WIFI;
-      LogInfo();
-      char* 
-    }
     
-    NetworkCommunication(char* W_SSID, char* W_PASSWD, word* LISTENPORT, word* SENDPORT, word* SYNCPORT){
+    NetworkCommunication(char* WIFI_SSID, int ssid_size, char* WIFI_PASSWD, int pass_size, word* LISTENPORT, word* SENDPORT, word* SYNCPORT){   
+
+      if(strlen(WIFI_SSID) == 0){
+        SerialAsker::AskForCString("Enter WIFI SSID", WIFI_SSID, ssid_size);
+      }
+      
+      if(strlen(WIFI_PASSWD) == 0){
+        SerialAsker::AskForCString("Enter WIFI Password:", WIFI_PASSWD, pass_size); 
+      }
+      
       LastMessage = "";
       LastMessageTime = 0;
       SEND_PORT=SENDPORT;
@@ -50,7 +38,12 @@ class NetworkCommunication{
       RemoteIp = "any";
       
       WiFi.setHostname("MUGRES-BODY");
-      WiFi.begin(W_SSID, W_PASSWD);
+      LogValue = "[SSID]: '" + String(WIFI_SSID) + "'";
+      LogInfo();
+      LogValue = "[PASSWORD]: '" + String(WIFI_PASSWD)  + "'";
+      LogInfo();
+      WiFi.begin(WIFI_SSID, WIFI_PASSWD);
+      
       while(WiFi.status() != WL_CONNECTED && ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
         if(millis() - LastConnectionAttempt > CONNECTION_ATTEMPT_ESTIMATED_INTERVAL){
           ConnectionAttemptCount++;
@@ -85,8 +78,6 @@ class NetworkCommunication{
     bool GetWiFiStatus();
 
   private:
-    String W_SSID;
-    String P_WIFI;
     String LocalIp;
     String RemoteIp;
     String LogValue;

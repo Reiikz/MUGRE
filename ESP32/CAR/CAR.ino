@@ -1,9 +1,8 @@
 #include "NetworkCommunication.h"
+#include "SerialAsker.h"
 
-//char* WIFI_SSID = ":'v':";
-char* WIFI_SSID = "Ceibal-2.4GHz";
-char* WIFI_PASSWD = "";
-//char* WIFI_PASSWD = "thedragonsarekawaii";
+char WIFI_SSID[50] = { '\0' };
+char WIFI_PASSWD[50]  = { '\0' };
 
 word LISTEN_PORT  = 5500;
 word SEND_PORT    = 5505;
@@ -13,7 +12,7 @@ NetworkCommunication* talker;
 
 void setup(){
   Serial.begin(115200);
-  talker = new NetworkCommunication(WIFI_SSID, WIFI_PASSWD, &LISTEN_PORT, &SEND_PORT, &SYNC_PORT);
+  talker = new NetworkCommunication(WIFI_SSID, sizeof(WIFI_SSID), WIFI_PASSWD, sizeof(WIFI_PASSWD), &LISTEN_PORT, &SEND_PORT, &SYNC_PORT);
 }
 
 void loop(){
