@@ -1,6 +1,6 @@
 #include <WiFi.h>
 #include "ESP32_Servo.h"
-
+#include "esp_wifi.h"
 //WIFI
 const char* W_SSID = ":'v':";
 const char* W_PASSWORD = "thedragonsarekawaii";
@@ -84,14 +84,11 @@ WiFiServer server(PORT);
 
 void setup()
 {
-  pinMode(BRAKE_LIGHT_PIN, OUTPUT);
-  pinMode(LEFT_TURN_LIGHT_PIN, OUTPUT);
-  pinMode(RIGHT_TURN_LIGHT_PIN, OUTPUT);
   pinMode(MOTOR_ENABLE_PIN, OUTPUT);
   pinMode(LEFT_MOTOR_INVERT_PIN, OUTPUT);
   pinMode(RIGHT_MOTOR_INVERT_PIN, OUTPUT);
   Serial.begin(115200);
-  Esp_wifi_set_ps (WIFI_PS_NONE);
+  esp_wifi_set_ps (WIFI_PS_NONE);
   WiFi.begin(W_SSID, W_PASSWORD);
   Serial.print("Connecting to wifi");
   actual_blink_routine = BLINK_ROUTINE_WIFI_DISCONNECTED;
