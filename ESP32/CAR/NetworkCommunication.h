@@ -1,53 +1,37 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include "esp_wifi.h"
 #include "Logger.h"
 #include "SerialAsker.h"
-#include "esp_wifi.h"
+
 
 #pragma once
 
 /*
  * 
- * This class serves as network communication basics, like listenning to a socket, 
- * initialization of the network connection, it does low level stuff
+ * This class serves as network communication basics, like listenning to a socket.
  * 
 */
 class NetworkCommunication{
-
-  public:
-  
-    static const byte MAX_CONNECTION_ATTEMPTS = 50;
-    static const word CONNECTION_ATTEMPT_ESTIMATED_INTERVAL = 700;
   
   public:
     
-    NetworkCommunication(word* LISTENPORT, word* SYNCPORT, String RemoteIp);
+    NetworkCommunication(word* SYNC_PORT, WiFiServer* server);
 
-    String IpToString(IPAddress);
-    void Handle();
-    String GetLastRecvMessage();
-    unsigned long GetSecondSinceLastRecv();
-    bool GetWiFiStatus();
+    static String IpToString(IPAddress);
+    void handle();
     void send(String);
     unsigned long TimeSinceSync();
     String LastMessage;
 
   private:
-    String RemoteIp;
-    String LogValue;
+    
     word* SYNC_PORT;
-    bool WifiStatus;
-    unsigned long LastMessageTime;
-    unsigned long LastConnectionAttempt;
-    unsigned long LastSync;
-    byte ConnectionAttemptCount;
     WiFiServer* server;
+    unsigned long LastSync;
+    String RemoteIp;
+    
     WiFiClient client1;
     IPAddress ClientIp;
     //WiFiClient client2;
-
-  private:
-    void LogError();
-    void LogInfo();
-    void LogWarning();
 };

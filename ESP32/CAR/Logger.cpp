@@ -1,7 +1,42 @@
 #include "Logger.h"
 #include <Arduino.h>
 
-void Logger::Log(String* logInfo, const char logType, const char logLevel){
+void Logger::loggerror(String m){
+  Logger::Log(m, Logger::LOGTYPE_GENERAL, Logger::LOGLEVEL_INFO);
+}
+
+void Logger::loggwarning(String m){
+  Logger::Log(m, Logger::LOGTYPE_GENERAL, Logger::LOGLEVEL_WARNING);
+}
+
+void Logger::logginfo(String m){
+  Logger::Log(m, Logger::LOGTYPE_GENERAL, Logger::LOGLEVEL_INFO);}
+
+void Logger::logwerror(String m){
+  Logger::Log(m, Logger::LOGTYPE_WIFI, Logger::LOGLEVEL_ERROR);
+}
+
+void Logger::logwwarning(String m){
+  Logger::Log(m, Logger::LOGTYPE_WIFI, Logger::LOGLEVEL_WARNING);
+}
+
+void Logger::logwinfo(String m){
+  Logger::Log(m, Logger::LOGTYPE_WIFI, Logger::LOGLEVEL_INFO);
+}
+
+void Logger::logserror(String m){
+  Logger::Log(m, Logger::LOGTYPE_SENSOR, Logger::LOGLEVEL_ERROR);
+}
+
+void Logger::logswarning(String m){
+  Logger::Log(m, Logger::LOGTYPE_SENSOR, Logger::LOGLEVEL_WARNING);
+}
+
+void Logger::logsinfo(String m){
+  Logger::Log(m, Logger::LOGTYPE_SENSOR, Logger::LOGLEVEL_INFO);
+}
+
+void Logger::Log(String logInfo, const char logType, const char logLevel){
   if(ENABLE_LOGGER){
     String type;
   switch(logType){
@@ -28,11 +63,11 @@ void Logger::Log(String* logInfo, const char logType, const char logLevel){
       type += " [INFO]: ";
       break;
     }
-    case LOGTYPE_WIFI:{
+    case LOGLEVEL_WARNING:{
       type += " [WARNING]: ";
       break;
     }
-    case LOGTYPE_GENERAL:{
+    case LOGLEVEL_ERROR:{
       type += " [ERROR]: ";
       break;
     }
@@ -41,7 +76,8 @@ void Logger::Log(String* logInfo, const char logType, const char logLevel){
       break;
     }
   }
-  type += *logInfo;
+  type = String("[MUGRE]: ") + type;
+  type += logInfo;
   Serial.println(type);
   }  
 }

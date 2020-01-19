@@ -1,10 +1,21 @@
-#include "NetworkCommunication.h"
-#include "SerialAsker.h"
-#include "Wheels.h"
-#include "Steer.h"
+#include "esp_wifi.h"
+#include <WiFi.h>
 
-char WIFI_SSID[50] = ":'v':";//{ '\0' };
-char WIFI_PASSWD[50]  = "thedragonsarekawaii";//{ '\0' };
+#include "NetworkCommunication.h"
+
+#include "Steer.h"
+#include "Wheels.h"
+
+#include "SerialAsker.h"
+#include "Logger.h"
+
+static const byte MAX_CONNECTION_ATTEMPTS = 50;
+static const word CONNECTION_ATTEMPT_ESTIMATED_INTERVAL = 700;
+
+const int ssid_size = 30;
+const int pass_size = 30;
+char SSID[ssid_size] =  ":'v':"; // { '\0' };
+char PASS[pass_size] =  "thedragonsarekawaii"; //{ '\0' };
 
 word LISTEN_PORT  = 5500;
 word SYNC_PORT    = 5505;
@@ -14,7 +25,7 @@ word SYNC_PORT    = 5505;
 #define MOTOR_RIGHT   (byte)  14
 #define STEER_SERVO   (byte)  4
 
-NetworkCommunication* talker_;
+NetworkCommunication* talker;
 Wheels* wheels;
 Steer* steering;
 
@@ -22,64 +33,57 @@ void setup(){
   Serial.begin(115200);
 
 
-  if(strlen(WIFI_SSID) == 0){
-    SerialAsker::AskForCString("Enter WIFI SSID", WIFI_SSID, ssid_size);
-  }
-  
-  if(strlen(WIFI_PASSWD) == 0){
-    SerialAsker::AskForCString("Enter WIFI Password:", WIFI_PASSWD, pass_size); 
-  }
-  
-  LastMessage = "";
-  LastMessageTime = 0;
-  LastSync = 0;
-  SYNC_PORT=SYNCPORT;
-  ConnectionAttemptCount = 0;
-  RemoteIp = "any";
-  
-  esp_wifi_set_ps (WIFI_PS_NONE);
-  WiFi.setHostname("MUGRES-BODY");
-  LogValue = "[SSID]: '" + String(WIFI_SSID) + "'";
-  LogInfo();
-  LogValue = "[PASSWORD]: '" + String(WIFI_PASSWD)  + "'";
-  LogInfo();
-  WiFi.begin(WIFI_SSID, WIFI_PASSWD);
-  
-  while(WiFi.status() != WL_CONNECTED && ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
-    if(millis() - LastConnectionAttempt > CONNECTION_ATTEMPT_ESTIMATED_INTERVAL){
-      ConnectionAttemptCount++;
-      LogValue = "[CONNECTION ATTEMPT]: " + String(ConnectionAttemptCount);
-      LogInfo();
-      LastConnectionAttempt = millis();
-      delay(CONNECTION_ATTEMPT_ESTIMATED_INTERVAL);
-    }
-  }
-  
-  if(ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
-    WifiStatus = 1;
-    IPAddress ip = WiFi.localIP();
-    LocalIp = IpToString(ip);
-    LogValue = "IP ADDRESS: " + LocalIp;
-    LogInfo();
-    server = new WiFiServer(*LISTENPORT);
-    server->begin();
-    LogValue = "Listenning on Port: " + String(*LISTENPORT);
-    LogInfo();
-  }else{
-    WifiStatus = 0;
-    LogValue = "Unable to connect wifi, reset to retry.";
-    LogError();
-  }
+  /*
+   * -------------------------------------------------------------------------------------------------------------------------------------------------
+   */
+      if(strlen(SSID) == 0){
+        SerialAsker::AskForCString("Enter WIFI SSID", SSID, ssid_size);
+      }
+      
+      if(strlen(PASS) == 0){
+        SerialAsker::AskForCString("Enter WIFI Password:", PASS, pass_size); 
+      }
+      int ConnectionAttemptCount = 0;
+      
+      //WiFi.setHostname("SensorController");
+      Logger::logwinfo(String("[SSID]: '") + String(SSID) + String("'"));
+      Logger::logwinfo((String("[PASSWORD]: '") + String(PASS)  + String("'")));
+      
+      //WiFi.mode(WIFI_STA);
+      //esp_wifi_set_ps (WIFI_PS_NONE);
+      WiFi.begin(SSID, PASS);
+      unsigned long LastConnectionAttempt = 0;
+      while(WiFi.status() != WL_CONNECTED && ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
+        if(millis() - LastConnectionAttempt > CONNECTION_ATTEMPT_ESTIMATED_INTERVAL){
+          ConnectionAttemptCount++;
+          Logger::logwinfo(("[CONNECTION ATTEMPT]: " + String(ConnectionAttemptCount)));
+          LastConnectionAttempt = millis();
+          delay(CONNECTION_ATTEMPT_ESTIMATED_INTERVAL);
+        }
+      }
+      
+      if(ConnectionAttemptCount < MAX_CONNECTION_ATTEMPTS){
+        IPAddress ip = WiFi.localIP();
+        Logger::logwinfo( (String("IP ADDRESS: ") + String(ip[0]) + "." + String(ip[1]) + "." + String(ip[2]) + "." + String(ip[3])) );
+      }else{
+        while(1){
+         Logger::logwerror(String("Unable to connect wifi, reset to retry."));
+         delay(CONNECTION_ATTEMPT_ESTIMATED_INTERVAL);
+        }
+      }
+  /*
+   * -------------------------------------------------------------------------------------------------------------------------------------------------
+   */
   
   
-  NetworkCommunication talker (WIFI_SSID, sizeof(WIFI_SSID), WIFI_PASSWD, sizeof(WIFI_PASSWD), &LISTEN_PORT, &SYNC_PORT);
-  talker_ = &talker;
-  wheels = new Wheels(talker_, MOTOR_ENABLE, MOTOR_LEFT, MOTOR_RIGHT);
-  steering = new Steer(talker_, STEER_SERVO);
+  talker = new NetworkCommunication(&SYNC_PORT, new WiFiServer(LISTEN_PORT));
+  wheels = new Wheels(talker, MOTOR_ENABLE, MOTOR_LEFT, MOTOR_RIGHT);
+  steering = new Steer(talker, STEER_SERVO);
 }
 
+
 void loop(){
-  talker_->Handle();
+  talker->handle();
   wheels->handle();
   steering->handle();
 }
